@@ -27,7 +27,8 @@ Ethernet_II_str = "Ethernet II";
 IEEE_Novel_8023_RAW_str = "IEEE Novel 802.3 RAW";
 IEEE_8023_LLC_SNAP_str = "IEEE 802.3 LLC + SNAP";
 IEEE_8023_LLC_str = "IEEE 802.3 LLC";
-
+Ethernet_str = "Ethernet"
+Ethernet_IEEE_str = "IEEE 802 LAN"
 TYPE = 0x0000
 
 
@@ -49,6 +50,13 @@ def ethernet11(buf):
         return IEEE_8023_LLC_SNAP_str
     else:
         return IEEE_8023_LLC_str
+
+
+def checkHWaddressType(data):
+    if int.from_bytes(data, "big") == 1:
+        return Ethernet_str
+    elif int.from_bytes(data, "big") == 6:
+        return Ethernet_IEEE_str
 
 
 def formatData(data):
