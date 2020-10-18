@@ -154,16 +154,6 @@ if os.path.exists(filename):
                     dest_f2_protocol_address = arp_frame2[24:28]
                     arp_frame1_type = arp_frame[6:8]
                     arp_frame2_type = arp_frame2[6:8]
-
-                    # src_protocol_address not in arp_printed_frames and dest_protocol_address not in
-                    # arp_printed_frames if Ethernet.prettifyIp(src_f1_protocol_address) != Ethernet.prettifyIp(
-                    # src_f2_protocol_address) and \ Ethernet.prettifyIp(src_f1_protocol_address) ==
-                    # Ethernet.prettifyIp( dest_f2_protocol_address) \ and Ethernet.prettifyIp(
-                    # dest_f1_protocol_address) == Ethernet.prettifyIp( src_f2_protocol_address) \ and
-                    # int.from_bytes( arp_frame1_type, "big") != int.from_bytes(arp_frame2_type,
-                    # "big"): arp_printed_frames[src_protocol_address] = dest_protocol_address arp_printed_frames[
-                    # dest_protocol_address] = src_protocol_address
-
                     if int.from_bytes(arp_frame1_type, "big") == 1 and int.from_bytes(arp_frame2_type, "big") == 2 and \
                             Ethernet.prettifyIp(src_f1_protocol_address) == Ethernet.prettifyIp(
                         dest_f2_protocol_address) and \
@@ -177,22 +167,11 @@ if os.path.exists(filename):
 
                         Ethernet.printARP(arp_frame, color_No)
                         Ethernet.printARP(arp_frame2, color_No)
-                        # elif src_f1_protocol_address not in arp_requests_without_pair_ip_frames and\
-                        # src_f1_protocol_address not in arp_printed_frames and src_f2_protocol_address not in
-                        # arp_printed_frames:
-                        #  else:
-                        #  Ethernet.printARP(arp_frame, 13)
-                        #  arp_requests_without_pair_frames.append(arp_frame)
-                        #  arp_requests_without_pair_ip_frames.append(src_f1_protocol_address)
                         print("######################################")
 
             if len(arp_printed_frames) == 0:
                 print("NO ARP PAIRS WHERE FOUNDED")
-            # for arp_frame_no_pair in arp_requests_without_pair_frames:
-            #    Ethernet.printARP(arp_frame_no_pair, 13)
-            #   print("######################################")
             print("---END - ARP PAIRS (IF IT'S EXISTED)-----")
-
             print("Source IPv4 addresses")
             # print('\n'.join(x for x in sending_nodes_IP))
             print('\n'.join(x for x in list(sending_nodes_IP)))
