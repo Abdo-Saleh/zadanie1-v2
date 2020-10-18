@@ -1,3 +1,5 @@
+import myColors
+
 # Ethernet payload types - http://standards.ieee.org/regauth/ethertype
 ETH_TYPE_UNKNOWN = 0x0000
 ETH_TYPE_EDP = 0x00bb  # Extreme Networks Discovery Protocol
@@ -50,6 +52,53 @@ def ethernet11(buf):
         return IEEE_8023_LLC_SNAP_str
     else:
         return IEEE_8023_LLC_str
+
+
+def switch_color(argument):
+    switcher = {
+        1: myColors.myColors.red,
+        2: myColors.myColors.green,
+        3: myColors.myColors.blue,
+        4: myColors.myColors.lightblue,
+        5: myColors.myColors.lightcyan,
+        6: myColors.myColors.cyan,
+        7: myColors.myColors.lightred,
+        8: myColors.myColors.pink,
+        9: myColors.myColors.yellow,
+        10: myColors.myColors.lightgreen,
+        11: myColors.myColors.lightgrey,
+        12: myColors.myColors.orange,
+        13: myColors.myColors.purple,
+    }
+    return switcher.get(argument)
+
+
+def printARP(data, colorNo):
+    #  arp = buf[14:46]
+    arp = data
+    hardware_address_type = arp[0:2]
+    protocol_address_type = arp[2:4]
+    hardware_address_length = arp[4:5]
+    protocol_address_length = arp[5:6]
+    arp_type = arp[6:8]
+    src_hardware_address = arp[8:14]
+    src_protocol_address = arp[14:18]
+    dest_hardware_address = arp[18:24]
+    dest_protocol_address = arp[24:28]
+    color = switch_color(colorNo)
+    if int.from_bytes(arp_type, "big") == 1:
+        print(color+"ARP-REQUEST"+myColors.myColors.ENDC)
+    if int.from_bytes(arp_type, "big") == 2:
+        print(color+"ARP-REPLY"+myColors.myColors.ENDC)
+    print(color+"Hardware Type: ".format(checkHWaddressType(hardware_address_type))+myColors.myColors.ENDC)
+    if int.from_bytes(protocol_address_type, "big") == ETH_TYPE_IP:
+        print(color+"Protocol Type: IPV4"+myColors.myColors.ENDC)
+    print(color+"Hardware Address Length: {} B".format(int.from_bytes(hardware_address_length, "big"))+myColors.myColors.ENDC)
+    print(color+"Protocol Address Length: {} B".format(int.from_bytes(protocol_address_length, "big"))+myColors.myColors.ENDC)
+    print(color+"Sender Mac Address: {}".format(prettifyMac(src_hardware_address))+myColors.myColors.ENDC)
+    print(color+"Sender IP Address: {}".format(prettifyIp(src_protocol_address))+myColors.myColors.ENDC)
+    print(color+"Target Mac Address: {}".format(prettifyMac(dest_hardware_address))+myColors.myColors.ENDC)
+    print(color+"Target IP Address: {}".format(prettifyIp(dest_protocol_address))+myColors.myColors.ENDC)
 
 
 def checkHWaddressType(data):

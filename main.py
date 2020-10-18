@@ -2,6 +2,7 @@ import dpkt
 import Ethernet
 import os
 import myColors
+import random
 print("WARNING - FILES MUST BE UNDER FOLDER WITH NAME 'test-files'")
 filename = 'test-files/' + input("Please enter file which you want to sniff WITHOUT .pcap: ") + '.pcap'
 if os.path.exists(filename):
@@ -12,12 +13,14 @@ if os.path.exists(filename):
             sending_nodes_IP = {}
             dest_nodes_IP = {}
             sending_nodes_IP_w_values = {}
-            arp_pair = {}
+            arp_frames = []
+            arp_printed_frames = {}
             for ts, buf in pcapFile:
                 eth = dpkt.ethernet.Ethernet(buf)
                 serial_number += 1
                 type = Ethernet.ethernet11(buf)
-                print(myColors.myColors.WARNING+"Serial number No. {} ".format(serial_number)+myColors.myColors.ENDC)
+                print(
+                    myColors.myColors.red + "Serial number No. {} ".format(serial_number) + myColors.myColors.ENDC)
                 print("Time stamp ", ts)
 
                 print("The frame length in bytes provided by the pcap API {} B".format(len(buf)))
@@ -118,36 +121,31 @@ if os.path.exists(filename):
                             print("TRACEROUTE")
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_ARP:
                     print("ARP")
-
                     arp = buf[14:46]
-                    hardware_address_type = arp[0:2]
-                    protocol_address_type = arp[2:4]
-                    hardware_address_length = arp[4:5]
-                    protocol_address_length = arp[5:6]
-                    arp_type = arp[6:8]
-                    src_hardware_address = arp[8:14]
-                    src_protocol_address = arp[14:18]
-                    dest_hardware_address = arp[18:24]
-                    dest_protocol_address = arp[24:28]
-                    if int.from_bytes(arp_type, "big") == 1:
-                        print("ARP-REQUEST")
-                    if int.from_bytes(arp_type, "big") == 2:
-                        print("ARP-REPLY")
-                    print("Hardware Type: ", Ethernet.checkHWaddressType(hardware_address_type))
-                    if int.from_bytes(protocol_address_type, "big") == Ethernet.ETH_TYPE_IP:
-                        print("Protocol Type: IPV4")
-                    print("Hardware Address Length: {} B".format(int.from_bytes(hardware_address_length, "big")))
-                    print("Protocol Address Length: {} B".format(int.from_bytes(protocol_address_length, "big")))
-                    print("Sender Mac Address: ", Ethernet.prettifyMac(src_hardware_address))
-                    print("Sender IP Address: ", Ethernet.prettifyIp(src_protocol_address))
-                    print("Target Mac Address: ", Ethernet.prettifyMac(dest_hardware_address))
-                    print("Target IP Address: ", Ethernet.prettifyIp(dest_protocol_address))
+                    arp_frames.append(arp)
+                    Ethernet.printARP(arp, 1)
 
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_IP6:
                     print("IP6")
                 print("-----------------------Browse in HEX-----------------------------")
                 Ethernet.formatData(buf)
                 print("-----------------------End of Browsing in HEX--------------------")
+
+            print("------ARP PAIRS (IF IT'S EXISTED)--------")
+            for arp_frame in arp_frames:
+                for arp_frame2 in arp_frames:
+                    # if source ip == target ip => pair
+                    src_protocol_address = arp_frame[14:18]
+                    dest_protocol_address = arp_frame2[24:28]
+                    arp_frame1_type = arp_frame[6:8]
+                    arp_frame2_type = arp_frame2[6:8]
+                    if Ethernet.prettifyIp(src_protocol_address) == Ethernet.prettifyIp(dest_protocol_address) and int.from_bytes(arp_frame1_type, "big") != int.from_bytes(arp_frame2_type, "big"):
+                        color_No = random.randint(2, 13)
+                        Ethernet.printARP(arp_frame,color_No)
+                        Ethernet.printARP(arp_frame2,color_No)
+                        print("######################################")
+            print("---END - ARP PAIRS (IF IT'S EXISTED)-----")
+
             print("Source IPv4 addresses")
             # print('\n'.join(x for x in sending_nodes_IP))
             print('\n'.join(x for x in list(sending_nodes_IP)))
