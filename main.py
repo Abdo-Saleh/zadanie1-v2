@@ -32,7 +32,6 @@ if os.path.exists(filename):
 
                 if type == Ethernet.Ethernet_II_str:
                     Ethernet.formatData(buf[14:])
-                    # formatData1(buf[14:])
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_IP:
                     ip_header = buf[14:34]
                     version_header_length = int.from_bytes(buf[14:15], "big")
@@ -53,11 +52,66 @@ if os.path.exists(filename):
                     # new_src_obj = source_node.SourceNode(src_ip, total_length)
                     sending_nodes_IP_w_values[src_ip] = total_length
 
-                    protocol = ip_header[9:10]
-                    if int.from_bytes(protocol, "big") == 6:
+                    protocol = int.from_bytes(ip_header[9:10], "big")
+                    if protocol == 6:
                         print("TCP")
-                    elif int.from_bytes(protocol, "big") == 17:
+                        tcp = buf[34:66]
+                        tcp_src_port = int.from_bytes(tcp[0:2], "big")
+                        tcp_dst_port = int.from_bytes(tcp[2:4], "big")
+                        if tcp_src_port == 80 or tcp_dst_port == 80:
+                            print("HTTP")
+                        if tcp_src_port == 443 or tcp_dst_port == 443:
+                            print("HTTPS")
+                        if tcp_src_port == 22 or tcp_dst_port == 22:
+                            print("SSH")
+                        if tcp_src_port == 21 or tcp_dst_port == 21:
+                            print("FTP-CONTROL")
+                        if tcp_src_port == 20 or tcp_dst_port == 20:
+                            print("FTP-DATA")
+                        if tcp_src_port == 23 or tcp_dst_port == 23:
+                            print("TELNET")
+                    elif protocol == 17:
                         print("UDP")
+                        udp = buf[34:66]
+                        if int.from_bytes(udp[0:2], "big") == 69 or int.from_bytes(udp[2:4], "big") == 69:
+                            print("TFTP")
+                    elif protocol == 1:
+                        print("ICMP")
+                        icmp_header = buf[34:66]
+                        code = int.from_bytes(icmp_header[1:2], "big")
+                        if code == 0:
+                            print("Echo Reply")
+                        if code == 3:
+                            print("TFTP")
+                            print("Destination Unreachable")
+                        if code == 4:
+                            print("Source Quench")
+                        if code == 5:
+                            print("Redirect")
+                        if code == 8:
+                            print("Echo")
+                        if code == 9:
+                            print("Router Advertisement")
+                        if code == 10:
+                            print("Router Selection")
+                        if code == 11:
+                            print("Time Exceeded")
+                        if code == 12:
+                            print("Parameter Problem")
+                        if code == 13:
+                            print("Timestamp")
+                        if code == 14:
+                            print("Timestamp Reply")
+                        if code == 15:
+                            print("Information Request")
+                        if code == 16:
+                            print("Information Reply")
+                        if code == 17:
+                            print("Address Mask Request")
+                        if code == 18:
+                            print("Address Mask Reply")
+                        if code == 30:
+                            print("TRACEROUTE")
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_ARP:
                     print("ARP")
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_IP6:
