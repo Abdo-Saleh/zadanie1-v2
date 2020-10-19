@@ -19,6 +19,7 @@ if os.path.exists(filename):
             arp_requests_without_pair_ip_frames = []
             arp_printed_frames = {}
             dns_nad_udp = []
+            dns_nad_udp_ids = []
             for ts, buf in pcapFile:
                 eth = dpkt.ethernet.Ethernet(buf)
                 serial_number += 1
@@ -102,6 +103,7 @@ if os.path.exists(filename):
                                     udp_src_port) + myColors.myColors.ENDC)
                             print(myColors.myColors.orange + "Destination Port: {}".format(
                                 udp_dst_port) + myColors.myColors.ENDC)
+                            dns_nad_udp_ids.append(serial_number)
                             dns_nad_udp.append(udp)
                         else:
                             print(
@@ -188,8 +190,26 @@ if os.path.exists(filename):
 
             if len(arp_printed_frames) == 0:
                 print("NO ARP PAIRS WHERE FOUNDED")
-
             print("---END - ARP PAIRS (IF IT'S EXISTED)-----")
+            print("--- DNS PACKETS-----")
+            no = 0
+            for udp1 in dns_nad_udp:
+                print(
+                    myColors.myColors.red + "Serial number No. {} ".format(
+                        dns_nad_udp_ids[no]) + myColors.myColors.ENDC)
+                no += 1
+                udp_src_port1 = int.from_bytes(udp1[0:2], "big")
+                udp_dst_port1 = int.from_bytes(udp1[2:4], "big")
+
+                print(myColors.myColors.orange + "DNS" + myColors.myColors.ENDC)
+                print(
+                    myColors.myColors.orange + "Source Port: {}".format(
+                        udp_src_port1) + myColors.myColors.ENDC)
+                print(myColors.myColors.orange + "Destination Port: {}".format(
+                    udp_dst_port1) + myColors.myColors.ENDC)
+                print("================================================")
+            print("---END - DNS PACKETS-----")
+
             print("Source IPv4 addresses")
             # print('\n'.join(x for x in sending_nodes_IP))
             print('\n'.join(x for x in list(sending_nodes_IP)))
