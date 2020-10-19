@@ -18,6 +18,7 @@ if os.path.exists(filename):
             arp_requests_without_pair_frames = []
             arp_requests_without_pair_ip_frames = []
             arp_printed_frames = {}
+            dns_nad_udp = []
             for ts, buf in pcapFile:
                 eth = dpkt.ethernet.Ethernet(buf)
                 serial_number += 1
@@ -45,7 +46,7 @@ if os.path.exists(filename):
                     version_header_length = int.from_bytes(buf[14:15], "big")
                     version = version_header_length >> 4
                     header_length = (version_header_length & 15) * 4
-                    end_of_ip_header = 14+header_length
+                    end_of_ip_header = 14 + header_length
                     ip_header = buf[14:end_of_ip_header]
 
                     total_length = int.from_bytes(ip_header[2:4], "big")
@@ -61,12 +62,15 @@ if os.path.exists(filename):
                     print(myColors.myColors.red + "Destination IP address {}".format(dest_ip) + myColors.myColors.ENDC)
 
                     # new_src_obj = source_node.SourceNode(src_ip, total_length)
-                    sending_nodes_IP_w_values[src_ip] = total_length
+                    if src_ip in sending_nodes_IP_w_values:
+                        sending_nodes_IP_w_values[src_ip] += total_length
+                    else:
+                        sending_nodes_IP_w_values[src_ip] = total_length
 
                     protocol = int.from_bytes(ip_header[9:10], "big")
                     if protocol == 6:
                         print(myColors.myColors.red + "TCP" + myColors.myColors.ENDC)
-                        tcp = buf[end_of_ip_header:end_of_ip_header+32]
+                        tcp = buf[end_of_ip_header:end_of_ip_header + 32]
                         tcp_src_port = int.from_bytes(tcp[0:2], "big")
                         tcp_dst_port = int.from_bytes(tcp[2:4], "big")
                         print(myColors.myColors.red + "Source Port: ".format(tcp_src_port) + myColors.myColors.ENDC)
@@ -89,57 +93,70 @@ if os.path.exists(filename):
                         udp = buf[end_of_ip_header:66]
                         udp_src_port = int.from_bytes(udp[0:2], "big")
                         udp_dst_port = int.from_bytes(udp[2:4], "big")
-                        print(myColors.myColors.red + "Source Port: {}".format(udp_src_port) + myColors.myColors.ENDC)
-                        print(myColors.myColors.red + "Destination Port: {}".format(
-                            udp_dst_port) + myColors.myColors.ENDC)
+
+                        # show the dns packets
+                        if udp_src_port == 53 or udp_dst_port == 53:
+                            print(myColors.myColors.orange + "DNS" + myColors.myColors.ENDC)
+                            print(
+                                myColors.myColors.orange + "Source Port: {}".format(
+                                    udp_src_port) + myColors.myColors.ENDC)
+                            print(myColors.myColors.orange + "Destination Port: {}".format(
+                                udp_dst_port) + myColors.myColors.ENDC)
+                            dns_nad_udp.append(udp)
+                        else:
+                            print(
+                                myColors.myColors.red + "Source Port: {}".format(udp_src_port) + myColors.myColors.ENDC)
+                            print(myColors.myColors.red + "Destination Port: {}".format(
+                                udp_dst_port) + myColors.myColors.ENDC)
+
                         if int.from_bytes(udp[0:2], "big") == 69 or int.from_bytes(udp[2:4], "big") == 69:
-                            print(myColors.myColors.red+"TFTP"+myColors.myColors.ENDC)
+                            print(myColors.myColors.red + "TFTP" + myColors.myColors.ENDC)
                     elif protocol == 1:
-                        print(myColors.myColors.red+"ICMP"+myColors.myColors.ENDC)
+                        print(myColors.myColors.red + "ICMP" + myColors.myColors.ENDC)
                         icmp_header = buf[end_of_ip_header:66]
                         code = int.from_bytes(icmp_header[1:2], "big")
                         if code == 0:
-                            print("Echo Reply")
+                            print(myColors.myColors.red + "Echo Reply" + myColors.myColors.ENDC)
                         if code == 3:
-                            print("TFTP")
-                            print("Destination Unreachable")
+                            print(myColors.myColors.red + "TFTP" + myColors.myColors.ENDC)
+                            print(myColors.myColors.red + "Destination Unreachable" + myColors.myColors.ENDC)
                         if code == 4:
-                            print("Source Quench")
+                            print(myColors.myColors.red + "Source Quench" + myColors.myColors.ENDC)
                         if code == 5:
-                            print("Redirect")
+                            print(myColors.myColors.red + "Redirect" + myColors.myColors.ENDC)
                         if code == 8:
-                            print("Echo")
+                            print(myColors.myColors.red + "Echo" + myColors.myColors.ENDC)
                         if code == 9:
-                            print("Router Advertisement")
+                            print(myColors.myColors.red + "Router Advertisement" + myColors.myColors.ENDC)
                         if code == 10:
-                            print("Router Selection")
+                            print(myColors.myColors.red + "Router Selection" + myColors.myColors.ENDC)
                         if code == 11:
-                            print("Time Exceeded")
+                            print(myColors.myColors.red + "Time Exceeded" + myColors.myColors.ENDC)
                         if code == 12:
-                            print("Parameter Problem")
+                            print(myColors.myColors.red + "Parameter Problem" + myColors.myColors.ENDC)
                         if code == 13:
-                            print("Timestamp")
+                            print(myColors.myColors.red + "Timestamp" + myColors.myColors.ENDC)
                         if code == 14:
-                            print("Timestamp Reply")
+                            print(myColors.myColors.red + "Timestamp Reply" + myColors.myColors.ENDC)
                         if code == 15:
-                            print("Information Request")
+                            print(myColors.myColors.red + "Information Request" + myColors.myColors.ENDC)
                         if code == 16:
-                            print("Information Reply")
+                            print(myColors.myColors.red + "Information Reply" + myColors.myColors.ENDC)
                         if code == 17:
-                            print("Address Mask Request")
+                            print(myColors.myColors.red + "Address Mask Request" + myColors.myColors.ENDC)
                         if code == 18:
-                            print("Address Mask Reply")
+                            print(myColors.myColors.red + "Address Mask Reply" + myColors.myColors.ENDC)
                         if code == 30:
-                            print("TRACEROUTE")
+                            print(myColors.myColors.red + "TRACEROUTE" + myColors.myColors.ENDC)
 
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_ARP:
-                    print(myColors.myColors.red+"ARP"+myColors.myColors.ENDC)
+                    print(myColors.myColors.red + "ARP" + myColors.myColors.ENDC)
                     arp = buf[14:46]
                     arp_frames.append(arp)
                     Ethernet.printARP(arp, 1)
 
                 if int.from_bytes(buf[12:14], "big") == Ethernet.ETH_TYPE_IP6:
-                    print(myColors.myColors.red+"IP6"+myColors.myColors.ENDC)
+                    print(myColors.myColors.red + "IP6" + myColors.myColors.ENDC)
                 print("-----------------------Browse in HEX-----------------------------")
                 Ethernet.formatData(buf)
                 print("-----------------------End of Browsing in HEX--------------------")
@@ -171,6 +188,7 @@ if os.path.exists(filename):
 
             if len(arp_printed_frames) == 0:
                 print("NO ARP PAIRS WHERE FOUNDED")
+
             print("---END - ARP PAIRS (IF IT'S EXISTED)-----")
             print("Source IPv4 addresses")
             # print('\n'.join(x for x in sending_nodes_IP))
